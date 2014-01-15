@@ -1,0 +1,52 @@
+Variable:             Description
+_________________________________
+deBug               - debug level
+PROFILER_LOCATION   - Location of profiler
+LOOP_STARTUP_TIME   - Minutes before cast to start cast procedure
+SYNC_TIME(0)        - Cast time in minutes past hour.
+SYNC_TIME(1)        - same
+SYNC_TIME(2)        - same
+SYNC_TIME(3)        - same
+SYNC_TIME(4)        - same
+SYNC_TIME(5)        - same
+HOME_POSITION       - Number of clicks down from the absolute top to home
+                      position.
+CLICKS_PER_M        - Optical encoder starte changes per meter of instrument
+                      travel.
+DELTA_CLICKS        - Click Frequency to check depth change for errors
+HOME_TO_WL_COUNT    - Clicks down home position to waterline position
+WL_TO_HOME_COUNT    - Clicks up from waterline position to home position
+AMPS_LOW            - Low current to use at end of home when sonde is out of
+                      water. FLOAT
+AMPS_NORMAL         - Standard current threshold. FLOAT
+AMPS_BOOSTED        - Higher current threshold when boosted. FLOAT
+PTC_CURRENT_MIN     - Maximum current the PTC will draw when tripped. FLOAT
+PTC_CURRENT_MAX     - Minimum current the PTC will draw when tripped. FLOAT
+LOW_VOLTAGE         - Low voltage_load alarm level. FLOAT
+DEPTH_PORT          - Depth instrument port
+DEPTH_BAUD          - Depth instrument baud rate
+DEPTH_MARGIN_M      - Distance to stop sonde before reaching depth value. FLOAT
+water_depth_m       - water depth to use until instrument returns new value. FLOAT
+MIN_DEPTH_M         - Minimum water depth. Used to reject spuriously shallow
+                      readings. FLOAT
+max_depth_m         - Maximum water depth in m, used to reject spuriously deep
+                      readings. FLOAT
+MAX_CAST_DEPTH_M    - This is the maximum depth the platform can cast to before
+                      the line starts backspooling. It will depend mostly on
+                      cable length. FLOAT
+SALTWATER_COND      - Threshold for deciding if sonde is in the water.
+                      Dependent on overall water salinity. FLOAT
+SMS_ADDRESS         - Address to which critical alarm messages are sent 
+LAUNCH_CHECK_CLICKS - Number of clicks into cast where depth & conductivity 
+                      should be checked to see if we should abort.
+ENCODER_MAX_TIME    - Maximum time beween clicks without generating an error
+AVP_SENSOR_CONFIG   - Index to various sensor setups.
+                      1 = 6600v1 without pH, ClarkCell DO, and NMEA depth
+                      2 = 6600v2 with pH and ODO, and SeaTalk depth
+                      3+ future use.
+ISCO_ENABLED        - Use isch_sch.txt schedule if it exists.
+ISCO_SLEEP_TIME     - Time to sleep in seconds while ISCO samples
+AVP_LIMIT_RELAY     - Set to 1 if the platform has a sensor and relay to
+                      prevent the motor from pulling up the sonde too far. 
+SONDE_FILTERING     - If set to T, the sonde's filtering capabilities will be enabled.
+PROFILER_NUMBER     - Platform number. Stored to EEPROM

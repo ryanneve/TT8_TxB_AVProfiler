@@ -1,0 +1,170 @@
+$LANG = "VBScript"
+' Array of the three files we will be retreiving
+dim fileNames(3)
+dim cr
+cr = Chr(13)
+lf = Chr(10)
+ctrlX = Chr(24)
+
+dim platform,sourceDir,destDir,daysAgo
+platform = haGetSessionDataString(10)
+haTypeLocalText "Setting platform to " + platform
+sourceDir = "C:\Program Files\HAWin32\My Files\Download\"
+destDir = "C:\Documents and Settings\All Users\Documents\" + platform + "\01_ModemDL\"
+daysAgo = 1
+
+dim ffYear, ffMonth, ffDay
+dim logFile, windFile, dataFile
+dim status
+
+haAbortOnError 1
+haSetCurrentDir sourceDir
+
+' calculate retrieveDates data and logfile names
+retrieveDate= Date - daysAgo
+
+ffYear = CStr(Year(retrieveDate)-2000)
+if Len(ffYear) = 1 then
+    ffYear = "0"+ffYear
+end if
+ffYear = "20" + ffYear
+
+ffMonth = CStr(Month(retrieveDate))
+if Len(ffMonth) = 1 then
+    ffMonth = "0"+ffMonth
+end if
+
+ffDay = CStr(Day(retrieveDate))
+if Len(ffDay) = 1 then
+   ffDay = "0"+ffDay
+end if
+logFile  = ffYear + ffMonth + ffDay + ".log"
+windFile  = ffYear + ffMonth + ffDay + ".wnd"
+dataFile  = ffYear + ffMonth + ffDay + ".dat"
+haTypeLocalText " Will attempt to download files from " + ffYear + ffMonth + ffDay
+
+' place the filenames in the array for the loop to use
+fileNames(1) = windFile
+fileNames(2) = dataFile
+fileNames(3) = logFile
+
+
+' Establish a connection to the platform. Platform to connect to is specified in command line
+haWaitForConnection 1, 1000000
+haTypeLocalText "Connected to " + platform
+'Sets a timer for dismissing message boxes that report errors and unusual conditions.
+haSetMessageTimer( 15 )
+
+' wait 5 seconds in case modem is spitting out result codes
+haWait 5000
+
+haTypeLocalText "Sending three ctrl=X then a CR"
+haTypeText ctrlX + ctrlX + ctrlX + cr
+' wait 2 seconds
+haWait 2000
+' get a command prompt
+haTypeText "hello" + cr
+haTypeText "hello" + cr
+
+haTypeLocalText "Expecting 'Command:'"
+' Wait up to 10 minutes for cast to finish and enter console mode
+haWaitForPrompt "Command:", 300, 600000
+
+haWait 5000   'try waiting a few seconds for the system to respond
+
+' enter another CR to make sure we get a prompt
+haTypeText "hello" + cr
+' Only wait 10 seconds for this second prompt
+haWaitForPrompt "Command:", 300, 10000
+
+
+'For each file we want to download 1-3
+haTypeLocalText "Beginning main download loop" + cr + lf
+for i = 1 to 3
+   ' set status to some bogus value
+   status = 99
+
+   haTypeLocalText "Next file: " + fileNames(i) + cr + lf
+   ' turn off abort on error
+   haAbortOnError 0
+   ' status 1 is Session is connected.
+   ' status 2 is Session is disconnected.
+   while status > 2
+      ' only start downloads between 5 and 20 past each half hour, or
+      ' between 35 and 50 past each half hour, otherwise wait
+      while Minute(Now)<5 or (Minute(Now)>20 and Minute(Now)<35) or Minute(Now)>50
+         haWait 1000   'wait a second
+      wend
+
+      ' check status of connection
+      status = haGetConnectionStatus
+
+      ' if disconnected, reconnect
+      if status = 2 then
+      
+         haTypeLocalText "Trying to re-connect"
+         haConnectSession 0 'Do a normal connection sequence.
+         haWaitForConnection 1, 1200000 'wait up to 20 minutes for connection
+         haSetMessageTimer( 15 )
+
+         ' wait 5 seconds in case modem is spitting out result codes
+         haWait 5000
+
+         ' type  control-x's to try to stop an active transfer
+         haTypeText ctrlX & ctrlX & ctrlX & ctrlX & ctrlX & ctrlX & ctrlX & ctrlX
+'         haTypeText Chr(24) & Chr(24)&Chr(24)&Chr(24)&Chr(24)&Chr(24)&Chr(24)&Chr(24)
+
+         haWait 5000   'try waiting a few seconds for the system to respond
+
+         ' enter a CR
+         haTypeText "hello" + cr
+         ' Wait up to 10 minutes for cast to finish and enter console mode
+         haWaitForPrompt "Command:", 300, 600000
+         ' enter another CR to make sure we get a prompt
+         haTypeText "hello" + cr
+         ' Only wait 10 seconds for this second prompt
+         haWaitForPrompt "Command:", 300, 10000
+
+         haWait 5000		' wait 5 more seconds
+      end if
+
+      ' re-synchronize (something may have started)
+      haTypeText "hello" + cr
+      haWaitForPrompt "Command:", 300, 600000
+
+      ' send the file YMODEM
+      haTypeTextEx "ys " + UCase(fileNames(i)) + cr
+      ' 2,4 is xmodem and 2,6 is ymodem. Ymode requires no local file name
+      
+      haSetXferProtocol 2, 4
+      haWaitForPrompt UCase(fileNames(i))&cr&Chr(10)
+
+      saveFile = platform + "_" + fileNames(i)
+      haWait 3000             ' wait 3 more seconds
+      haXferReceive saveFile  'Then begin transfer
+
+      ' Once receive is done, Copy the received files to their individual directories
+      sourcePath = sourceDir + saveFile
+      destPath = destDir + saveFile 
+      haTypeLocalText "Copying " + sourcePath + cr + lf + "     To " + destPath
+      haFileCopy sourcePath, destPath
+
+      ' check status
+      status = haGetXferFinalStatus
+      haWait 16000		' wait one second longer than the msg box should be up
+   wend
+
+   ' if we get here we have had a successful transfer
+   'Rename any files we retreived
+   'haTypeTextEx "ren " + fileNames(i) + " F_" + right(fileNames(i), 10)
+
+   ' turn abort on error back on
+   haAbortOnError 1
+next
+
+haTypeText  "hello" + cr
+haWait 10000		' wait 10 more seconds
+haDisconnectSession
+haWaitForConnection 2, 10000
+haMenuString "FX"
+'haTerminate

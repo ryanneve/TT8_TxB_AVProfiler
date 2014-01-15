@@ -1,0 +1,36 @@
+TT8 AVP Console Commands:
+   ?              - Print this list AVP commands
+   help           - Print list of PicoDOS commands available
+   status         - Print some status information
+   sinit          - Re-initialize sonde
+   init           - Re-initialize based on contents of setup3.ini
+                    also re-reads ISCO schedule when appropriate.
+   wind           - Access RM Young wind monitor console
+   sonde          - Access YSI sonde console
+   sample         - Put sonde into sampling mode
+   sdate          - Set time & date from sonde
+   up NNN[e][b]   - Raise sonde by N clicks
+   down NNN[e][b] - Lower sonde by N clicks
+                    e = turn off encoder before running motor
+                    b = temporary current boost
+   park           - Park sonde
+   cast           - Perform an immediate cast
+   skip           - Skips first cast on boot up.
+   depth          - Run GetDepth subroutine
+   tail <filename>[:bytes] - Print end of file. Default is 800 bytes
+   xs [<offset>:]<file>    - Perform an X-Modem send of file <file>.
+   ys [<offset>:]<file>    - Perform a Y-Modem send of file <file>
+                    If <offset>: is specified, this is a partial file transfer.
+                    Skip first <offset> bytes of <file>. Note that in in y-modem,
+                    file received will be called PARTIAL.DAT.
+   debug          - Increment De-Bug mode. 0=terse, 1=normal,2=verbose
+   set            - Interactive mode to set a single variable. enter variable<cr> then value<cr>.
+   exit           - Exit console mode (also CTRL-x)
+   quitprog       - Exit to TxB# prompt (also CTRL-c)
+
+ISCO commands (if ISCO_ENABLED = 1):
+   iscoread       - Re-read isco schedule file (",ISCO_FILE,")."
+   iscostat       - Get ISCO status and next cast time."
+   iscosmpl       - Manually sample at current depth"
+
+Commands MUST be in all lower case!
