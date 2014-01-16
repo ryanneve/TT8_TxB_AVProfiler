@@ -2,8 +2,8 @@ MODEL  800               // Tell TxBasic which model we're using              |
 //----------------------------------------------------------------------------<
 //
 //                           Profiling Sonde Platform
-                             VERSION$  = "3.37"
-                             FILE_MODIFIED = 201204??
+                             VERSION$  = "3.38"
+                             FILE_MODIFIED = 20140115
                              deBug = 1 // Toggles deBug mode for printing to COM1
                                        // (0 = almost silent, 1 = Some messages, 2 = All Messages (SETUP3.INI))
 IFF 0 // Just lets me collapse all the comments in Notepad++
@@ -25,6 +25,8 @@ IFF 0 // Just lets me collapse all the comments in Notepad++
 //       temp_* variables should not be used across subroutines.
 //       Variables used in a subroutine should be noted in the header. It should be noted if they are only used locally, read only, or modified.
 //   Changes:
+//      2014-01-15 Version 3.38 (xxxx bytes)
+//           Was getting stuck in LaunchCheck when using very slow motor.
 //      2012-04-?? Version 3.37 (xxxx bytes)
 //           Both loops in CheckSMS can be exited with esc or crtl-x
 //           ISCO schedule was being read twice on startup
@@ -1851,7 +1853,7 @@ MotorRun:
                 IFF sonde_logging = 'T'    // Do we want to log it?
                     GOSUB LogSondeData   // Get a line of buffered data and STORE() it
                     // Launch check is a routine which early in the cast makes sure everything is going well. RYAN: May be redundant now that we have back wind detection.
-                    IF clicks_counted >= (LAUNCH_CHECK_CLICKS - 2)  & clicks_counted <= (LAUNCH_CHECK_CLICKS + 2) GOSUB LaunchCheck
+                    IF clicks_counted >= (LAUNCH_CHECK_CLICKS - 2)  & clicks_counted < (LAUNCH_CHECK_CLICKS + 2) GOSUB LaunchCheck
                 ENDIF
                 GOSUB GetSondeDepth  // returns sonde_depth! variable
                 IFF sonde_depth! >= depth_target! & motor_running = 'D' // Turn the motor off if we've reached our depth or conductivity conditions
@@ -3084,8 +3086,9 @@ LaunchCheck:
         ENDIF
         HPSleep(0) : HPSleep(10) // enough time for startup surge to pass
     ELSE
-        clicks_counted = LAUNCH_CHECK_CLICKS + 1
-        // Set the saltwater threshold to half the value a tthis depth.
+        clicks_counted = LAUNCH_CHECK_CLICKS + 2
+		StopWatchStart()
+        // Set the saltwater threshold to half the value a this depth.
         IF sonde_conduct! > 0 saltwater_cond! = sonde_conduct!/2.0
         IF deBug PRINT "At click ",clicks_counted," no launch problems detected. Conductivity target set to", #6.3F, saltwater_cond!,"."
     ENDIF
